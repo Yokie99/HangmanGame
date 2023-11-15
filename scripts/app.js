@@ -27,13 +27,34 @@ let userInput = document.getElementById("userInput");
 let randomword = "";
 let wrongGuess = "";
 let displayedWord = []; 
+let guesses = 0;
 
-let guess = 0;
+let guess = "";
 let maxguess = 5;
 
 startBtn.addEventListener('click',function(){
     APIcall();
 })
+
+restartBtn.addEventListener('click', function(){
+    resetGame();
+})
+
+
+function resetGame(){
+    randomword = "";
+    wrongGuess = "";
+    displayedWord = [];
+    guess = 0;
+    wrongGuesses.textContent = "";
+    userInput = "";
+    secretWord.textContent = "[secrect word]";
+    wrongGuess.textContent = "";
+    hangman.textContent = `Guesses Left 0 / ${maxguess}`
+    userInput.readOnly = true;
+    userInput = "";
+
+}
 
 function APIcall(){
     fetch('https://random-word-api.herokuapp.com/word')
@@ -47,18 +68,50 @@ function APIcall(){
 }
 
 function startGame(word){
+    displayedWord = [];
     randomword = word;
     for(let i = 0; i < randomword.length; i++){
         displayedWord[i] = "_";
     }
     updateGameState();
+    userInput.readOnly = false;
 }
 
 function updateGameState(){
     secretWord.textContent = displayedWord.join(" ");
-    hangman.textContent = `Guesses Left ${guess} / ${maxguess}`
-
+    hangman.textContent = `Guesses Left ${guesses} / ${maxguess}`
 }
 
+userInput.addEventListener('keydown', function(event){
+    if(event.key == "Enter"){
+        let guess = userInput.value.toLowerCase();
+        if(randomword.includes(guess)){
+            for(let i = 0; i < randomword.length; i++){
+                if(randomword[i] === guess){
+                    displayedWord[i] = guess;
+                }
+            }
+        }
+        else{
+            wrongGuess += guess;
+            wrongGuesses.textContent = wrongGuess; 
+            guesses++;
+        }
+    }
 
 
+    updateGameState();
+    userInput.value = "";
+    gameEnd();
+})
+
+function gameEnd(){
+    if(guesses === maxguess){
+        alert(`YOU LOSE, the word was ${randomword}`);
+        resetGame();
+    }
+    else if (displayedWord.join("") === randomword){
+        alert("YOU WIN");
+        resetGame();
+    }
+}
